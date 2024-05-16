@@ -1,0 +1,138 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome file</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h1 id="cheat-sheet-pour-stimulus.js">Cheat Sheet pour Stimulus.js</h1>
+<h2 id="introduction-à-stimulus.js">Introduction à Stimulus.js</h2>
+<blockquote>
+<p>Stimulus est une bibliothèque JavaScript légère qui facilite le développement d’interactions basées sur des données dans vos applications web. Elle est conçue pour fonctionner en harmonie avec les frameworks JavaScript existants et se concentre sur l’amélioration progressive de vos pages web.</p>
+</blockquote>
+<h2 id="principes-clés">Principes Clés</h2>
+<h3 id="créer-un-contrôleurs">0. Créer un contrôleurs</h3>
+<p><a href="https://stimulus.hotwired.dev/reference/controllers">Documentation controlleurs Stimulus</a></p>
+<p>Pour créer un contrôleur, je créé un nouveau fichier dans mon dossier <code>controllers</code> nommé <code>exemple_controller.js</code></p>
+<blockquote>
+<p>javascript/application.js</p>
+</blockquote>
+<pre class=" language-javascript"><code class="prism  language-javascript"><span class="token keyword">import</span> <span class="token punctuation">{</span> Application <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">"stimulus"</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> ExampleController <span class="token keyword">from</span> <span class="token string">"./controllers/example_controller"</span><span class="token punctuation">;</span> <span class="token comment">// Importez votre contrôleur</span>
+
+<span class="token comment">// Initialise l'application Stimulus</span>
+<span class="token keyword">const</span> application <span class="token operator">=</span> Application<span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Charger individuellement les contrôleurs</span>
+application<span class="token punctuation">.</span><span class="token function">register</span><span class="token punctuation">(</span><span class="token string">"example"</span><span class="token punctuation">,</span> ExampleController<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h3 id="contrôleurs-controllers">1. Contrôleurs (Controllers)</h3>
+<p><a href="https://stimulus.hotwired.dev/reference/controllers">Documentation controlleurs Stimulus</a></p>
+<p>Les contrôleurs sont les blocs de construction de Stimulus. Chaque contrôleur gère un domaine spécifique de la page web et est associé à un élément HTML.</p>
+<blockquote>
+<p>javascript/controlleurs/exemple_controller.js</p>
+</blockquote>
+<pre class=" language-javascript"><code class="prism  language-javascript"><span class="token keyword">import</span> <span class="token punctuation">{</span> Controller <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">"stimulus"</span><span class="token punctuation">;</span>
+
+<span class="token keyword">export</span> <span class="token keyword">default</span> <span class="token keyword">class</span> <span class="token class-name">extends</span> Controller <span class="token punctuation">{</span>
+  <span class="token comment">// Méthode appelée lorsque le contrôleur est connecté à un élément</span>
+  <span class="token function">connect</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Logique d'initialisation</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token comment">// Méthode appelée lorsque le contrôleur est déconnecté d'un élément</span>
+
+  <span class="token comment">// Autres méthodes et propriétés</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="actions">2. Actions</h3>
+<p><a href="https://stimulus.hotwired.dev/reference/actions">Documentation actions Stimulus</a></p>
+<p>Les actions définissent le comportement d’un contrôleur en réponse à des événements sur ses éléments associés.</p>
+<blockquote>
+<p>index.html</p>
+</blockquote>
+<pre class=" language-html"><code class="prism  language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">data-controller</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>example<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">data-action</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>click-&gt;example#handleClick<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Cliquez ici<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+</code></pre>
+<blockquote>
+<p>javascript/controlleurs/exemple_controller.js</p>
+</blockquote>
+<pre class=" language-javascript"><code class="prism  language-javascript"><span class="token keyword">import</span> <span class="token punctuation">{</span> Controller <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">"stimulus"</span><span class="token punctuation">;</span>
+
+<span class="token keyword">export</span> <span class="token keyword">default</span> <span class="token keyword">class</span> <span class="token class-name">extends</span> Controller <span class="token punctuation">{</span>
+  <span class="token function">handleClick</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Logique à exécuter lors du clic sur le bouton</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="valeurs-de-cibles-target-values">3. Valeurs de cibles (Target Values)</h3>
+<p><a href="https://stimulus.hotwired.dev/reference/targets">Documentation targets Stimulus</a></p>
+<p>Les valeurs de cibles sont des éléments HTML associés à un contrôleur qui peuvent être référencés dans le contrôleur.</p>
+<blockquote>
+<p>index.html</p>
+</blockquote>
+<pre class=" language-html"><code class="prism  language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">data-controller</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>example<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">data-exemple-target</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>input<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+</code></pre>
+<blockquote>
+<p>javascript/controlleurs/exemple_controller.js</p>
+</blockquote>
+<pre class=" language-javascript"><code class="prism  language-javascript"><span class="token keyword">import</span> <span class="token punctuation">{</span> Controller <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">"stimulus"</span><span class="token punctuation">;</span>
+
+<span class="token keyword">export</span> <span class="token keyword">default</span> <span class="token keyword">class</span> <span class="token class-name">extends</span> Controller <span class="token punctuation">{</span>
+  <span class="token keyword">static</span> targets <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"input"</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// Console log mon input lors du chargement du controller</span>
+  <span class="token function">connect</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+	console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>inputTarget<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token comment">// Utilisation de la cible</span>
+  <span class="token function">logInputValue</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>inputTarget<span class="token punctuation">.</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="données-data">4. Données (Data)</h3>
+<p><a href="https://stimulus.hotwired.dev/reference/values">Documentation data-value Stimulus</a></p>
+<p>Stimulus permet de stocker des données dans les éléments HTML à l’aide d’attributs <code>data-*</code>, ce qui facilite la communication entre le HTML et le JavaScript.</p>
+<blockquote>
+<p>index.html</p>
+</blockquote>
+<pre class=" language-html"><code class="prism  language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">data-controller</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>example<span class="token punctuation">"</span></span> <span class="token attr-name">data-controller-name-value</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>John<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token comment">&lt;!-- HTML --&gt;</span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+</code></pre>
+<blockquote>
+<p>javascript/controlleurs/exemple_controller.js</p>
+</blockquote>
+<pre class=" language-javascript"><code class="prism  language-javascript"><span class="token keyword">import</span> <span class="token punctuation">{</span> Controller <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">"stimulus"</span><span class="token punctuation">;</span>
+
+<span class="token keyword">export</span> <span class="token keyword">default</span> <span class="token keyword">class</span> <span class="token class-name">extends</span> Controller <span class="token punctuation">{</span>
+  <span class="token keyword">static</span> values <span class="token operator">=</span> <span class="token punctuation">{</span>
+    name<span class="token punctuation">:</span> String <span class="token comment">// Type de donnée (String, Number...)</span>
+  <span class="token punctuation">}</span>
+  
+  <span class="token function">connect</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>nameValue<span class="token punctuation">)</span> <span class="token comment">// =&gt; John</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="ressources-additionnelles">Ressources Additionnelles</h2>
+<ul>
+<li><a href="https://stimulus.hotwired.dev/">Documentation officielle de Stimulus.js</a></li>
+<li><a href="https://github.com/stimulusjs/stimulus">GitHub de Stimulus.js</a></li>
+</ul>
+<blockquote>
+<p>Made by <a href="https://github.com/YanisDahmane">Yanis DAHMANE</a></p>
+</blockquote>
+</div>
+</body>
+
+</html>
