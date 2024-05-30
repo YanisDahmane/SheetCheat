@@ -1,0 +1,151 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome file</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h1 id="utilisation-simplifié-de-turbo">Utilisation simplifié de Turbo</h1>
+<blockquote>
+<p>Ce cours fait suite à celui du wagon “<a href="https://kitt.lewagon.com/camps/1648/lectures/05-Rails/09-Airbnb-SMTP">Search</a>”</p>
+</blockquote>
+<h2 id="introduction-à-turbo">Introduction à turbo</h2>
+<p><a href="https://turbo.hotwired.dev/handbook/introduction">Documentation</a></p>
+<blockquote>
+<p><strong>Turbo</strong> est un outil de la suite Hotwire qui permet de construire des applications web réactives sans écrire de JavaScript personnalisé. Il utilise des techniques comme les Turbo Frames et les Turbo Streams pour rendre les interactions utilisateur plus rapides et fluides en évitant les rechargements complets de page.</p>
+</blockquote>
+<h2 id="vocabulaire">Vocabulaire</h2>
+<ol>
+<li>Turbo Frames : Encapsulent des parties de la page qui pourrons être mises à jour indépendamment</li>
+<li>Turbo Stream : Permmettent de mettre à jour les Turbo Frames de manière asynchrone</li>
+</ol>
+<h2 id="comment-réaliser-une-barre-de-recherche-avec-turbo-">Comment réaliser une barre de recherche avec turbo ?</h2>
+<h3 id="simplifions-notre-code">0. Simplifions notre code</h3>
+<p>Nous allons mettre au propre notre code en créent des partials, nous verrons par la suite sont utilité</p>
+<p>Je créé un fichier <code>_movies_list.html.erb /views/movies/</code><br>
+Dans le quel je mets tout le html concernant l’affichage des films</p>
+<blockquote>
+<p>/views/movies/_movies_list.html.erb</p>
+</blockquote>
+<pre><code>&lt;div  class="row justify-content-center"&gt;
+   &lt;div  class="col-sm-8"&gt;
+      &lt;div  id="movies"&gt;
+         &lt;%  if  @movies.any?  %&gt;
+            &lt;%  @movies.each  do |movie| %&gt;
+               &lt;h4&gt;&lt;%= movie.title  %&gt;&lt;/h4&gt;
+               &lt;p&gt;&lt;%= movie.synopsis  %&gt;&lt;/p&gt;
+            &lt;%  end  %&gt;
+         &lt;%  else  %&gt;
+            &lt;em&gt;Sorry, no movies found.&lt;/em&gt;
+         &lt;%  end  %&gt;
+      &lt;/div&gt;
+   &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+<p>Et maintenant j’appel ma partial dans mon index</p>
+<pre><code>&lt;div  class="container"&gt;
+   &lt;div  class="row justify-content-center"&gt;
+      &lt;div  class="col-sm-8 my-3"&gt;
+         &lt;%= form_with url: movies_path, method:  :get, class:  "d-flex"  do  %&gt;
+             &lt;%= text_field_tag :query, params[:query], class:  "form-control", placeholder:  "Type a keyword" %&gt;
+             &lt;%= submit_tag "Search", name:  "", class:  "btn btn-primary"  %&gt;
+          &lt;%  end  %&gt;
+       &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;%= render partial:  "movies_list", locals: {movies:  @movies} %&gt;
+&lt;/div&gt;
+</code></pre>
+<h3 id="mettre-le-formulaire-dans-une-turbo-frame">1. Mettre le formulaire dans une turbo frame</h3>
+<p>Nous devons encapsuler le formulaire de recherche dans un Turbo Frame avec l’id <code>search_form</code> pour permettre l’envoi de la requette GET (envoi du formulaire) de façon asynchrone. Ce qui permet de ne pas actualiser la page par exemple<br>
+Nous pensons à ajouter <code>local: false</code> pour indiquer à form_with que nous voulons des requettes asynchrone</p>
+<blockquote>
+<p>/views/movies/index.html.erb</p>
+</blockquote>
+<pre><code>&lt;%= turbo_frame_tag "search_form" do%&gt;
+   &lt;%= form_with url: movies_path, method: :get,local: false, class: "d-flex"  do  %&gt;
+      &lt;%= text_field_tag :query, params[:query], class: "form-control", placeholder:  "Type a keyword" %&gt;
+      &lt;%= submit_tag "Search", name:  "", class:  "btn btn-primary"  %&gt;
+   &lt;%  end  %&gt;
+&lt;%  end  %&gt;
+</code></pre>
+<h3 id="mettre-les-résultats-dans-un-turbo-frame">2. Mettre les résultats dans un turbo frame</h3>
+<p>Les résultats aussi devrons être dans une turbo frame avec l’id <code>movies</code>, en effet on veut les changer de façon asynchrone en fonction de ce que l’utilisateur à mis dans le formulaire un peu plus haut</p>
+<blockquote>
+<p>/views/movies/index.html.erb</p>
+</blockquote>
+<pre><code>&lt;%= turbo_frame_tag "movies"  do  %&gt;
+   &lt;%= render partial:  "movies_list", locals: {movies:  @movies}%&gt;
+&lt;%  end%&gt;
+</code></pre>
+<h3 id="mettons-à-jour-notre-controlleur">3. Mettons à jour notre controlleur</h3>
+<p>Il faut maintenant rendre notre controlleur compatible avec Turbo<br>
+Il faut comprendre que désormais lorsque nous faisons appel à ce controlleur via notre formulaire celui là demandera une reponse turbo_stream puisque lui même étant dans une turbo frame.<br>
+Ducoup nous allons demander à notre controlleur lorsque tu reçois une demande de turbo_stream au lieu d’html alors répond moi en turbo_stream</p>
+<blockquote>
+<p>/controllers/movies_controller.rb</p>
+</blockquote>
+<pre class=" language-ruby"><code class="prism  language-ruby">  respond_to <span class="token keyword">do</span> <span class="token operator">|</span>format<span class="token operator">|</span>
+	  format<span class="token punctuation">.</span>html
+	  format<span class="token punctuation">.</span>turbo_stream
+  <span class="token keyword">end</span>
+</code></pre>
+<h3 id="essayons">4. Essayons</h3>
+<p>Lorsque nous utilisons le formulaire on voit que rien ne se produit 🤨<br>
+Regardons les ce qui se passe dans le network de notre navigateur<br>
+Une requette est bien envoyé, regardons maintenant la response</p>
+<pre class=" language-html"><code class="prism  language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">&gt;</span></span>
+    
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">&gt;</span></span>
+    <span class="token comment">&lt;!-- app/views/movies/index.html.erb --&gt;</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>container<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+	    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>row justify-content-center<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+		    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>col-sm-8 my-3<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+			    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>turbo-frame</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>search_form<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+				    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>form</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>d-flex<span class="token punctuation">"</span></span> <span class="token attr-name">action</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>/movies<span class="token punctuation">"</span></span> <span class="token attr-name">accept-charset</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>UTF-8<span class="token punctuation">"</span></span> <span class="token attr-name">data-remote</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span> <span class="token attr-name">method</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>get<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+				        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>query<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>query<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>Superman<span class="token punctuation">"</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>form-control<span class="token punctuation">"</span></span> <span class="token attr-name">placeholder</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>Type a keyword<span class="token punctuation">"</span></span> <span class="token punctuation">/&gt;</span></span>
+					    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>submit<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span><span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>Search<span class="token punctuation">"</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>btn btn-primary<span class="token punctuation">"</span></span> <span class="token attr-name">data-disable-with</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>Search<span class="token punctuation">"</span></span> <span class="token punctuation">/&gt;</span></span>
+					<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>form</span><span class="token punctuation">&gt;</span></span>
+				<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>turbo-frame</span><span class="token punctuation">&gt;</span></span>
+			<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>turbo-frame</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>movies<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+			<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>row justify-content-center<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+				<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>col-sm-8<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+					<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>movies<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+						<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h4</span><span class="token punctuation">&gt;</span></span>Superman<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h4</span><span class="token punctuation">&gt;</span></span>
+						<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">&gt;</span></span>An alien orphan is sent from his dying planet to Earth, where he grows up to become his adoptive home<span class="token entity" title="'">&amp;#39;</span>s first and greatest superhero.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+					<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+				<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+			<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+		<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>turbo-frame</span><span class="token punctuation">&gt;</span></span>
+	<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">&gt;</span></span>
+</code></pre>
+<p>On dirait que tout fonctionne bien on retrouve une page html qui contient exactement les éléments que l’on veut.<br>
+Le problème c’est que notre turbo frame <code>movies</code> ne s’actualise pas.</p>
+<p>C’est normal seul la turbo frame avec la quelle nous avons intéragie s’attends à être modifier ici la turbo frame <code>search_form</code> on va devoir modifier ça en ajoutant des informations dans notre formulaire.</p>
+<h3 id="terminons-le-formulaire">5. Terminons le formulaire</h3>
+<p>Pour indiquer à turbo que nous voulons actualiser la turbo frame avec l’id <code>movies</code> lorsque le formulaire est envoyé au lieu de la turbo frame <code>search_form</code> alors nous l’indiquons avec <code>data: { turbo_frame: "movies" }</code> au sein de notre form_with</p>
+<blockquote>
+<p>/views/movies/index.html.erb</p>
+</blockquote>
+<pre><code>&lt;%= turbo_frame_tag "search_form" do%&gt;
+   &lt;%= form_with url: movies_path, method: :get,local: false, data: { turbo_frame: "movies" }, class: "d-flex"  do  %&gt;
+      &lt;%= text_field_tag :query, params[:query], class: "form-control", placeholder:  "Type a keyword" %&gt;
+      &lt;%= submit_tag "Search", name:  "", class:  "btn btn-primary"  %&gt;
+   &lt;%  end  %&gt;
+&lt;%  end  %&gt;
+</code></pre>
+<h3 id="essayons-1">6. Essayons</h3>
+<p>Normalement tout devrais fonctionner correctement</p>
+</div>
+</body>
+
+</html>
